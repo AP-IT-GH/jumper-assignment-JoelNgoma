@@ -2,6 +2,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine;
+//using System.Diagnostics;
 
 public class AgentJump : Agent
 {
@@ -16,6 +17,26 @@ public class AgentJump : Agent
         rb = GetComponent<Rigidbody>();
         isGrounded = true; 
     }
+
+public override void CollectObservations(VectorSensor sensor)
+{
+    sensor.AddObservation(isGrounded ? 1f : 0f);
+        sensor.AddObservation(detector.ObstacleDetected ? 1f : 0f);
+        GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
+        if (obstacles.Length == 0)
+        {
+            Debug.LogWarning("No obstacles found!");
+        }
+        else
+        {
+            foreach (GameObject obstacle in obstacles)
+            {
+                sensor.AddObservation(obstacle.transform.position);
+            }
+        }
+    }
+
+
 
     
 
