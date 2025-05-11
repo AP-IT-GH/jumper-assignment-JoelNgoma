@@ -6,7 +6,7 @@ using UnityEngine;
 public class AgentJump : Agent
 {
     Rigidbody rb;
-    public float jumpForce = 8f;
+    public float jumpForce = 10f;
     bool isGrounded;
     public ObstacleDetector detector;
     bool waitingForDetection = false;
@@ -24,20 +24,13 @@ void FixedUpdate()
     if (detector.CheckTimeFinished)
     {
 
-        Debug.Log($"[CHECK] isGrounded: {isGrounded}, ObstacleDetected: {detector.ObstacleDetected}, isAgentStill: {isAgentStill}");
-
+        
         if (!isGrounded && detector.ObstacleDetected)
         {
             AddReward(1.0f);
             Debug.Log("Goede sprong over obstakel +1");
         }
 
-        if (isGrounded && detector.ObstacleDetected)
-        {
-            AddReward(-1.0f); 
-            Debug.Log("Niet gesprongen bij obstakel -1");
-            EndEpisode();
-        }
         if (!isGrounded && !detector.ObstacleDetected)
         {
             AddReward(-0.2f); 
@@ -49,7 +42,14 @@ void FixedUpdate()
 }
 
 
-
+    void OnTriggerEnter(Collider other){
+    if (other.CompareTag("Obstacle"))
+    {
+        AddReward(-0.1f); 
+        Debug.Log("Niet gesprongen bij een obstacle -1");
+        EndEpisode();
+    }
+    }
 
 
     void OnCollisionEnter(Collision collision)
@@ -57,14 +57,6 @@ void FixedUpdate()
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-            Debug.Log("Collision Enter - Grounded: True");
-        }
-
-        if (collision.gameObject.CompareTag("Obstacle"))
-        {
-            AddReward(-1f);
-            Debug.Log("Obstacle geraakt");
-            EndEpisode();
         }
     }
 
@@ -73,7 +65,6 @@ void FixedUpdate()
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
-            Debug.Log("Collision Exit - Grounded: False");
         }
     }
 
@@ -90,7 +81,6 @@ void FixedUpdate()
         if (jumpAction == 1 && isGrounded)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            Debug.Log("Jump Action Received and Executed!");
             detector.StartChecking();
         }
     }

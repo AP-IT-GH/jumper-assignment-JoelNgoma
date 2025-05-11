@@ -25,6 +25,8 @@ public class ObstacleDetector : MonoBehaviour
 
     void Update()
     {
+    Debug.Log(ObstacleDetected);
+
         if (checking)
         {
             timer += Time.deltaTime;
@@ -40,6 +42,7 @@ public class ObstacleDetector : MonoBehaviour
     {
         if (other.CompareTag("Obstacle"))
         {
+            Debug.Log(other);
             ObstacleDetected = true;
         }
     }
