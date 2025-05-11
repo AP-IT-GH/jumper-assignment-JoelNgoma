@@ -8,6 +8,8 @@ public class AgentJump : Agent
     Rigidbody rb;
     public float jumpForce = 8f;
     bool isGrounded;
+    public ObstacleDetector detector;
+    bool waitingForDetection = false;
 
     void Start()
     {
@@ -15,12 +17,54 @@ public class AgentJump : Agent
         isGrounded = true; 
     }
 
+    
+
+void FixedUpdate()
+{
+    if (detector.CheckTimeFinished)
+    {
+
+        Debug.Log($"[CHECK] isGrounded: {isGrounded}, ObstacleDetected: {detector.ObstacleDetected}, isAgentStill: {isAgentStill}");
+
+        if (!isGrounded && detector.ObstacleDetected)
+        {
+            AddReward(1.0f);
+            Debug.Log("Goede sprong over obstakel +1");
+        }
+
+        if (isGrounded && detector.ObstacleDetected)
+        {
+            AddReward(-1.0f); 
+            Debug.Log("Niet gesprongen bij obstakel -1");
+            EndEpisode();
+        }
+        if (!isGrounded && !detector.ObstacleDetected)
+        {
+            AddReward(-0.2f); 
+            Debug.Log("Onnodige sprong -0.2");
+        }
+
+        detector.ResetCheck();
+    }
+}
+
+
+
+
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
             Debug.Log("Collision Enter - Grounded: True");
+        }
+
+        if (collision.gameObject.CompareTag("Obstacle"))
+        {
+            AddReward(-1f);
+            Debug.Log("Obstacle geraakt");
+            EndEpisode();
         }
     }
 
@@ -47,6 +91,15 @@ public class AgentJump : Agent
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             Debug.Log("Jump Action Received and Executed!");
+            detector.StartChecking();
         }
     }
+
+        public override void OnEpisodeBegin()
+    {
+        rb.linearVelocity = Vector3.zero;
+        detector.ResetCheck();
+    }
+
+
 }
